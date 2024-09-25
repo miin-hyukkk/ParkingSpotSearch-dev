@@ -1,0 +1,10 @@
+/* styles/font.css */
+
+/* Google Fonts에서 Noto Sans KR 가져오기 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100..900&display=swap');
+
+body, html {
+  font-family: 'Noto Sans KR', sans-serif; /* 기본 폰트로 설정 */
+}
+
+/* 추가 스타일 필요 시 여기에 추가 */
