@@ -1,97 +1,19 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { throttle } from "lodash";
+import React from "react";
 import Header from "../layout/header";
 import Input from "../common/input";
-import loadParkingData from "../../api";
-import ParkingDataRequest from "../../interfaces/parkingDataRequest";
-import { SeoulDistrict } from "../../interfaces/seoulDistrict";
-import seoulDistricts from "../../constants/seoulDistricts";
 import List from "./list";
-import { ParkingData } from "../../interfaces/parkingData";
 import LoadingSpinner from "../common/loadingSpinner";
+import useSidebar from "../../hooks/useSidebar";
 
 export default function Sidebar() {
-  const [inputValue, setInputValue] = useState<string>("");
-  const [region, setRegion] = useState<SeoulDistrict>(""); // 초기값을 빈 문자열로 설정
-  const [parkingData, setParkingData] = useState<ParkingData[]>([]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [totalPages, setTotalPages] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(false); // 로딩 상태 추가
-
-  // 주차장 데이터를 가져오는 함수
-  const fetchParkingData = async (input: SeoulDistrict, page: number) => {
-    if (!input || isLoading) return; // 입력 값이 없거나 로딩 중이면 요청하지 않음
-
-    const requestData: ParkingDataRequest = {
-      start: (page - 1) * 10 + 1,
-      end: page * 10,
-      region: input,
-    };
-
-    setIsLoading(true); // 로딩 시작
-    try {
-      const data = await loadParkingData(requestData);
-      setParkingData(prev => [...prev, ...(data?.GetParkingInfo?.row || [])]); // 데이터를 추가
-      setTotalPages(Math.ceil(data.GetParkingInfo.list_total_count / 10)); // 총 페이지 수 계산
-    } catch (error) {
-      console.error("주차장 데이터 로딩 중 오류 발생:", error);
-    } finally {
-      setIsLoading(false); // 로딩 끝
-    }
-  };
-
-  // 데이터를 가져오는 함수에 throttle 적용 (최신 currentPage 사용)
-  const throttledFetchParkingData = useCallback(
-    throttle((region_: SeoulDistrict, page: number) => {
-      fetchParkingData(region_, page);
-    }, 2000),
-    [],
-  );
-
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
-    if (seoulDistricts.includes(value as SeoulDistrict)) {
-      setRegion(value as SeoulDistrict);
-      setParkingData([]); // 데이터 초기화
-      setCurrentPage(1); // 페이지 초기화
-      throttledFetchParkingData(value as SeoulDistrict, 1); // 첫 페이지 데이터 불러오기
-    } else {
-      setRegion(""); // 유효하지 않은 경우 region을 빈 문자열로 설정
-    }
-  };
-
-  const handleScroll = useCallback(
-    throttle(() => {
-      const bottom =
-        window.innerHeight + window.scrollY >= document.body.offsetHeight - 100; // 약간의 여유를 두고 스크롤 체크
-      console.log(currentPage * 10, parkingData.length);
-      if (
-        bottom &&
-        currentPage < totalPages &&
-        !isLoading &&
-        currentPage * 10 === parkingData.length
-      ) {
-        setCurrentPage(prev => prev + 1); // 페이지 증가
-      }
-    }, 300), // 스크롤 이벤트를 300ms로 제한
-    [currentPage, totalPages, isLoading],
-  );
-
-  // 페이지가 변경될 때 데이터를 불러오는 useEffect
-  useEffect(() => {
-    if (region && currentPage > 1) {
-      throttledFetchParkingData(region, currentPage); // 페이지 업데이트 시 데이터 로드
-    }
-  }, [currentPage, region, throttledFetchParkingData]); // 페이지와 지역이 업데이트될 때마다 호출
-
-  // 스크롤 이벤트 등록
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [handleScroll]); // 스크롤 이벤트 핸들러가 변경될 때만 등록/제거
-
+  const {
+    region,
+    handleInputChange,
+    inputValue,
+    parkingData,
+    isLoading,
+    scrollableRef,
+  } = useSidebar();
   return (
     <div className="relative h-full">
       <Header />
@@ -101,8 +23,13 @@ export default function Sidebar() {
           ? `${region} 근처 주차장이에요.`
           : "주차장 정보를 찾고 있습니다..."}
       </h1>
-      <List parkingData={parkingData} />
-      {isLoading && <LoadingSpinner type={6} />} {/* 로딩 표시 */}
+      <div
+        className="flex-grow max-h-[calc(100vh-200px)] overflow-y-auto"
+        ref={scrollableRef}
+      >
+        <List parkingData={parkingData} />
+        {isLoading && <LoadingSpinner type={6} />}
+      </div>
     </div>
   );
 }
