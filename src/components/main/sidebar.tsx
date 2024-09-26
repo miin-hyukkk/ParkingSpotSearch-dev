@@ -1,39 +1,43 @@
-import React, { useState } from "react";
-import "bootstrap-icons/font/bootstrap-icons.css";
+import React, { useState, useCallback } from "react";
+import { throttle } from "lodash";
 import Header from "../layout/header";
 import Input from "../common/input";
 import loadParkingData from "../../api";
 import ParkingDataRequest from "../../interfaces/parkingDataRequest";
-// import List from "./list";
 
 export default function Sidebar() {
-  const [region, setRegion] = useState(""); // 입력된 자치구를 저장할 상태
-  const [parkingData, setParkingData] = useState([]); // 주차장 데이터를 저장할 상태
+  const [region, setRegion] = useState("");
+  const [parkingData, setParkingData] = useState([]);
 
-  // 자치구 입력 후 데이터 가져오는 함수
-  const handleInputChange = async (inputValue: string) => {
-    setRegion(inputValue); // 입력된 자치구를 상태에 저장
-    const requestData: ParkingDataRequest = {
-      start: 1,
-      end: 100,
-      region: inputValue, // regionData를 넘겨줌
-    };
-    // 실제 데이터 fetching 로직을 여기에 추가
+  const throttledFetchParkingData = useCallback(
+    throttle(async (inputValue: string) => {
+      const requestData: ParkingDataRequest = {
+        start: 1,
+        end: 100,
+        region: inputValue,
+      };
+      const data = await loadParkingData(requestData);
+      setParkingData(data?.GetParkingInfo?.row || []);
+    }, 2000), // 2초 쓰로틀링
+    [],
+  );
+
+  const handleInputChange = (inputValue: string) => {
+    setRegion(inputValue);
     if (inputValue.length >= 2) {
-      const data = await loadParkingData(requestData); // fetchParkingData는 예시 함수
-      setParkingData(data?.GetParkingInfo?.row);
+      throttledFetchParkingData(inputValue); // 2초에 한 번씩 API 호출
     } else {
       setParkingData([]);
     }
   };
 
-  console.log("region", region);
-  console.log("parkingData", parkingData);
+  console.log(region);
+  console.log(parkingData);
 
   return (
     <div className="h-full">
       <Header />
-      <Input onInputChange={handleInputChange} /> {/* 콜백 함수 전달 */}
+      <Input onInputChange={handleInputChange} />
       <h1 className="py-8 text-4xl">송파구 근처 주차장이에요.</h1>
       {/* <List parkingData={parkingData} /> */}
     </div>
