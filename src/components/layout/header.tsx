@@ -1,5 +1,6 @@
 import React from "react";
 import ICONS from "../../constants/icon";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function Header() {
   return (
