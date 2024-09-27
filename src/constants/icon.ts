@@ -8,6 +8,7 @@ const ICONS: IconProps = {
   logo: "bi bi-p-square-fill",
   search: "bi bi-search",
   bookmark: "bi bi-bookmark",
+  bookmark_fill: "bi bi-bookmark-fill",
 };
 
 export default ICONS;
