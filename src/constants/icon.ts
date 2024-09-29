@@ -9,6 +9,9 @@ const ICONS: IconProps = {
   search: "bi bi-search",
   bookmark: "bi bi-bookmark",
   bookmark_fill: "bi bi-bookmark-fill",
+  current_location: "bi bi-crosshair",
+  plus: "bi bi-plus",
+  minus: "bi bi-dash",
 };
 
 export default ICONS;
