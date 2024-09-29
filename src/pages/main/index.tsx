@@ -23,7 +23,7 @@ export default function Main() {
         />
       </div>
       <div
-        className={`w-full lg:w-[68%] h-full p-6 ${isMapVisible && !isApiCalled ? "block lg:block" : "hidden lg:block"}`}
+        className={`w-full lg:w-[68%] h-full ${isMapVisible && !isApiCalled ? "block lg:block" : "hidden lg:block"}`}
       >
         <Map />
       </div>
