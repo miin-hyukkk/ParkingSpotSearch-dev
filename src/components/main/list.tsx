@@ -2,16 +2,31 @@ import React from "react";
 import { ParkingData } from "../../interfaces/parkingData";
 
 interface ListProps {
-  parkingData: ParkingData[]; // 주차장 데이터 배열
+  parkingData: ParkingData[];
+  onItemClick: (parking: ParkingData) => void;
 }
 
-export default function List({ parkingData }: ListProps) {
+export default function List({ parkingData, onItemClick }: ListProps) {
+  const handleKeyDown = (
+    parking: ParkingData,
+    event: React.KeyboardEvent<HTMLDivElement>,
+  ) => {
+    // Enter 키 또는 Space 키가 눌렸을 때 클릭 핸들러 호출 (베리어 프리)
+    if (event.key === "Enter" || event.key === " ") {
+      onItemClick(parking);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-5 pt-6 border-t border-gray-300 border-t-1">
       {parkingData.map(parking => (
         <div
           key={parking.LAT}
-          className="flex flex-col gap-3 py-2 border-b border-gray-200"
+          className="flex flex-col gap-3 py-2 border-b border-gray-200 cursor-pointer "
+          onClick={() => onItemClick(parking)}
+          onKeyDown={event => handleKeyDown(parking, event)} // 키보드 이벤트 추가(장애가 있는 사용자. 베리어 프리)
+          tabIndex={0} // 요소를 포커스 가능하게 설정
+          role="button"
         >
           <h2 className="text-3xl font-light text-secondary">
             {parking.PKLT_NM}
