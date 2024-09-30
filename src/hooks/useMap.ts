@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { SeoulDistrict } from "../interfaces/seoulDistrict";
 import ICONS from "../constants/icon";
+import useGuStore from "../store/gustore";
 
 export default function useMap() {
   const [map, setMap] = useState<any>(null); // 지도 객체를 상태로 관리
@@ -9,7 +9,7 @@ export default function useMap() {
     lng: number;
   } | null>(null);
 
-  const [currentDistrict, setCurrentDistrict] = useState<SeoulDistrict>(""); // 현재 자치구 정보 상태
+  const { setCurrentDistrict } = useGuStore();
 
   const updateDistrict = (center: any) => {
     const geocoder = new window.kakao.maps.services.Geocoder();
@@ -21,23 +21,12 @@ export default function useMap() {
         if (status === window.kakao.maps.services.Status.OK) {
           // 자치구 정보를 찾고 `region_type`이 'H'인 경우 해당 정보를 상태에 저장
           const district = result.find((item: any) => item.region_type === "H");
-          console.log(
-            "result",
-            result,
-            [...district.address_name.split(" ")][1],
-          );
-
           if (district)
-            setCurrentDistrict([...district.address_name.split(" ")][1]);
+            setCurrentDistrict([...district.address_name.split(" ")][1]); // 전역 상태 업데이트
         }
       },
     );
   };
-
-  useEffect(() => {
-    console.log("currentDistrict", currentDistrict);
-  }, [currentDistrict]);
-
   useEffect(() => {
     const loadMap = (lat: number, lng: number) => {
       const container = document.getElementById("map");
@@ -55,6 +44,7 @@ export default function useMap() {
       });
 
       marker.setMap(newMap); // 마커를 지도에 표시
+      updateDistrict(newMap.getCenter());
 
       // 지도 중심 좌표 변경 시 자치구 정보 업데이트
       window.kakao.maps.event.addListener(newMap, "center_changed", () => {
