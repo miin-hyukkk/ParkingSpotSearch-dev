@@ -6,6 +6,7 @@ import { ParkingData } from "../interfaces/parkingData";
 
 export default function useMap() {
   const [map, setMap] = useState<any>(null); // 지도 객체를 상태로 관리
+
   const [currentPosition, setCurrentPosition] = useState<{
     lat: number;
     lng: number;
@@ -135,9 +136,9 @@ export default function useMap() {
   }, [currentDistrict]);
   useEffect(() => {
     // parkingData가 변경될 때마다 지도에 마커를 추가
-    if (parkingData.length > 0) {
-      addMarkersToMap(parkingData);
-    }
+    console.log("parkingData22", parkingData);
+
+    addMarkersToMap(parkingData);
   }, [parkingData]);
 
   //
@@ -187,5 +188,6 @@ export default function useMap() {
       onClick: moveToCurrentLocation,
     },
   ];
-  return { buttons };
+
+  return { buttons, parkingData, setParkingData };
 }
