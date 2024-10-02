@@ -14,7 +14,7 @@ export default function Map() {
         style={{ width: "100%", height: "100vh" }}
       >
         {/* 필터 버튼들 */}
-        <div className="absolute flex flex-row items-center space-x-4 top-8 left-12">
+        <div className="absolute flex flex-row items-center justify-center space-x-4 top-8 left-12">
           {filterButtons.map(button => (
             <button
               onClick={button.onClick}
@@ -25,10 +25,12 @@ export default function Map() {
               key={button["aria-label"]}
             >
               <i
-                className={`${button.iconClass} mr-2`}
+                className={`${button.iconClass} mr-2 pt-1`}
                 style={{ fontSize: "13px" }}
               />
-              <span className="text-black">{button.label}</span>
+              <span className={`text-${button.isClicked ? "white" : "black"}`}>
+                {button.label}
+              </span>
             </button>
           ))}
         </div>
