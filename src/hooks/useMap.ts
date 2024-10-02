@@ -136,8 +136,6 @@ export default function useMap() {
   }, [currentDistrict]);
   useEffect(() => {
     // parkingData가 변경될 때마다 지도에 마커를 추가
-    console.log("parkingData22", parkingData);
-
     addMarkersToMap(parkingData);
   }, [parkingData]);
 
