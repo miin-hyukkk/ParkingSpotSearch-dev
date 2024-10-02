@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import ICONS from "../constants/icon";
 import useGuStore from "../store/gustore";
+import loadParkingData from "../api";
+import { ParkingData } from "../interfaces/parkingData";
 
 export default function useMap() {
   const [map, setMap] = useState<any>(null); // 지도 객체를 상태로 관리
+
   const [currentPosition, setCurrentPosition] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
+  const [markers, setMarkers] = useState<any[]>([]); // 생성된 마커들을 상태로 관리
 
-  const { setCurrentDistrict } = useGuStore();
+  const { currentDistrict, setCurrentDistrict } = useGuStore();
+  const [parkingData, setParkingData] = useState<ParkingData[]>([]);
 
   const updateDistrict = (center: any) => {
     const geocoder = new window.kakao.maps.services.Geocoder();
@@ -32,15 +37,29 @@ export default function useMap() {
       const container = document.getElementById("map");
       const options = {
         center: new window.kakao.maps.LatLng(lat, lng), // 사용자의 현재 위치로 중심 좌표 설정
-        level: 3,
+        level: 5,
       };
       const newMap = new window.kakao.maps.Map(container, options);
       setMap(newMap); // 지도 객체를 상태에 저장
+
+      const currentPositionMarkerImageSrc = "/current.png"; // 현재 위치 마커 이미지 경로
+      const currentPositionMarkerSize = new window.kakao.maps.Size(100, 40); // 마커 이미지 크기
+      const currentPositionMarkerOption = {
+        offset: new window.kakao.maps.Point(25, 50),
+      }; // 마커 위치 조정 옵션
+
+      // 현재 위치 마커 이미지 생성
+      const currentPositionMarkerImage = new window.kakao.maps.MarkerImage(
+        currentPositionMarkerImageSrc,
+        currentPositionMarkerSize,
+        currentPositionMarkerOption,
+      );
 
       // 현재 위치에 마커 추가
       const markerPosition = new window.kakao.maps.LatLng(lat, lng);
       const marker = new window.kakao.maps.Marker({
         position: markerPosition,
+        image: currentPositionMarkerImage, // 커스텀 마커 이미지 설정
       });
 
       marker.setMap(newMap); // 마커를 지도에 표시
@@ -73,7 +92,79 @@ export default function useMap() {
       loadMap(33.450701, 126.570667);
     }
   }, []);
+  // `currentDistrict`가 변경될 때 해당 자치구의 중심으로 지도 이동
+  useEffect(() => {
+    if (currentDistrict && map) {
+      const geocoder = new window.kakao.maps.services.Geocoder();
 
+      geocoder.addressSearch(currentDistrict, (result: any, status: any) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          // 검색된 주소 정보가 있을 때
+          if (result.length > 0) {
+            const { x, y } = result[0]; // 좌표 정보 가져오기
+            const newCenter = new window.kakao.maps.LatLng(y, x);
+            map.setCenter(newCenter); // 지도 중심을 검색된 좌표로 이동
+          }
+        }
+      });
+    }
+  }, [currentDistrict, map]);
+  const fetchParkingData = async (district: string) => {
+    const requestData = {
+      start: 1,
+      end: 999,
+      region: district,
+    };
+
+    try {
+      const data = await loadParkingData(requestData);
+      const newParkingData = data?.GetParkingInfo?.row || [];
+      setParkingData(newParkingData);
+    } catch (error) {
+      console.error("주차장 데이터 로딩 중 오류 발생:", error);
+    }
+  };
+
+  const addMarkersToMap = (parkingSpots: any[]) => {
+    if (!map) return;
+
+    markers.forEach(marker => marker.setMap(null));
+    setMarkers([]); // 마커 상태 초기화
+
+    const newMarkers = parkingSpots.map(spot => {
+      const { LAT, LOT } = spot;
+      const markerPosition = new window.kakao.maps.LatLng(LAT, LOT);
+      const marker = new window.kakao.maps.Marker({
+        position: markerPosition,
+      });
+
+      marker.setMap(map); // 마커를 지도에 표시
+      return marker;
+    });
+
+    setMarkers(newMarkers); // 생성된 마커들을 상태에 저장
+  };
+
+  useEffect(() => {
+    if (currentDistrict) {
+      setParkingData([]);
+      fetchParkingData(currentDistrict);
+    }
+  }, [currentDistrict]);
+  useEffect(() => {
+    // parkingData가 변경될 때마다 지도에 마커를 추가
+    addMarkersToMap(parkingData);
+  }, [parkingData]);
+
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
   // 버튼 클릭 시 현재 위치로 지도의 중심을 이동시키는 함수
   const moveToCurrentLocation = () => {
     if (map && currentPosition) {
@@ -112,5 +203,6 @@ export default function useMap() {
       onClick: moveToCurrentLocation,
     },
   ];
-  return { buttons };
+
+  return { buttons, parkingData, setParkingData };
 }

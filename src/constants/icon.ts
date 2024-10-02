@@ -12,6 +12,12 @@ const ICONS: IconProps = {
   current_location: "bi bi-crosshair",
   plus: "bi bi-plus",
   minus: "bi bi-dash",
+
+  // Font Awesome icons
+  road_solid: "fa-solid fa-road", // 노상
+  ruler_solid: "fa-solid fa-ruler", // 노외
+  won: "fa-solid fa-won-sign", // 유,무료
+  car: "fa-solid fa-car", // 현재주차가능
 };
 
 export default ICONS;
