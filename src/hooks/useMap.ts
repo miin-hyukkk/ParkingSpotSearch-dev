@@ -92,6 +92,23 @@ export default function useMap() {
       loadMap(33.450701, 126.570667);
     }
   }, []);
+  // `currentDistrict`가 변경될 때 해당 자치구의 중심으로 지도 이동
+  useEffect(() => {
+    if (currentDistrict && map) {
+      const geocoder = new window.kakao.maps.services.Geocoder();
+
+      geocoder.addressSearch(currentDistrict, (result: any, status: any) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          // 검색된 주소 정보가 있을 때
+          if (result.length > 0) {
+            const { x, y } = result[0]; // 좌표 정보 가져오기
+            const newCenter = new window.kakao.maps.LatLng(y, x);
+            map.setCenter(newCenter); // 지도 중심을 검색된 좌표로 이동
+          }
+        }
+      });
+    }
+  }, [currentDistrict, map]);
   const fetchParkingData = async (district: string) => {
     const requestData = {
       start: 1,
