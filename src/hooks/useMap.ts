@@ -3,6 +3,7 @@ import ICONS from "../constants/icon";
 import useGuStore from "../store/gustore";
 import loadParkingData from "../api";
 import { ParkingData } from "../interfaces/parkingData";
+import "@fortawesome/fontawesome-free/css/all.css";
 
 export default function useMap() {
   const [map, setMap] = useState<any>(null);
@@ -95,12 +96,17 @@ export default function useMap() {
 
       // 커스텀 오버레이 컨텐츠 설정
       const content = `
-      <div style="position: relative; padding: 10px; width: 250px; font-size: 14px; background: white; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); border-radius: 4px;">
-        <strong style="font-size: 16px;">${PKLT_NM}</strong><br/>
-        주소: ${ADDR}<br/>
-        현재 주차 가능: ${PRK_STTS_YN}대<br/>
-        기본요금: ${PRD_AMT}원<br/>
-        <a href="#" style="color: blue;">상세보기</a>
+      <div class="customOverlayClass" style="display: flex; flex-direction: column; gap:1rem; position: relative; padding: 10px; font-size: 14px; background: white; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); border-radius: 10px;">
+        <div style="display: flex; justify-content: space-between width:100%; gap:2rem">
+          <strong style="font-size: 16px; color: #0875F5">${PKLT_NM}</strong>
+          <i id="bookmark" class="bi bi-bookmark" style="background: none; border: none; cursor: pointer;"></i>
+        </div>  
+        <p>주소: ${ADDR}</p>
+        <p style="color:#4395F6">현재 주차 가능: ${PRK_STTS_YN}대</p>
+        <div style="display: flex; justify-content: space-between">
+          <p>기본요금: ${PRD_AMT}원</p>
+          <a href="#" style="color: blue;">상세보기</a>
+        </div>
         <div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-width: 10px; border-style: solid; border-color: white transparent transparent transparent;"></div>
       </div>
     `;
@@ -123,6 +129,34 @@ export default function useMap() {
       newOverlay.setMap(map);
 
       setCustomOverlay(newOverlay);
+
+      // 오버레이가 렌더링된 후 아이콘 버튼에 접근
+      const bookmarkBtn = document.querySelector("#bookmark");
+      console.log("bookmarkBtn", bookmarkBtn);
+
+      // 아이콘 버튼 상태에 따라 로컬스토리지 업데이트 및 아이콘 변경
+      bookmarkBtn?.addEventListener("click", () => {
+        const isBookmarked = bookmarkBtn.classList.contains(
+          ".bi bi-bookmark-fill",
+        );
+        console.log("isBookmarked", isBookmarked);
+
+        if (isBookmarked) {
+          // 북마크가 이미 되어 있는 경우, 로컬스토리지에서 삭제
+          bookmarkBtn.classList.remove("bi-bookmark-fill");
+          bookmarkBtn.classList.add("bi-bookmark");
+          localStorage.removeItem(PKLT_NM); // 주차장 이름을 키로 사용하여 삭제
+        } else {
+          // 북마크가 안되어 있는 경우, 로컬스토리지에 추가
+          bookmarkBtn.classList.remove("bi-bookmark");
+          bookmarkBtn.classList.add("bi-bookmark-fill");
+          localStorage.setItem(
+            PKLT_NM,
+            JSON.stringify({ PKLT_NM, ADDR, PRK_STTS_YN, PRD_AMT }),
+          );
+          console.log("local", localStorage);
+        }
+      });
     }
   }, [modalData, map]);
 
@@ -179,6 +213,32 @@ export default function useMap() {
     addMarkersToMap(parkingData);
   }, [parkingData]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (customOverlay) {
+        console.log("제발씨발");
+
+        const overlayElement = document.querySelector(".customOverlayClass"); // 오버레이의 DOM 요소 클래스
+        console.log("제발씨발3", overlayElement);
+
+        if (overlayElement && !overlayElement.contains(event.target as Node)) {
+          console.log("제발씨발2");
+
+          customOverlay.setMap(null); // 외부 클릭 시 오버레이 닫기
+          setCustomOverlay(null); // 상태 초기화
+        }
+      }
+    };
+
+    // 전역 클릭 이벤트 등록
+    window.addEventListener("click", handleClickOutside);
+
+    return () => {
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
+      window.removeEventListener("click", handleClickOutside);
+    };
+  }, [customOverlay]);
+
   const moveToCurrentLocation = () => {
     if (map && currentPosition) {
       const moveLatLon = new window.kakao.maps.LatLng(
@@ -215,5 +275,11 @@ export default function useMap() {
     },
   ];
 
-  return { buttons, parkingData, setParkingData, modalData, setModalData };
+  return {
+    buttons,
+    parkingData,
+    setParkingData,
+    modalData,
+    setModalData,
+  };
 }
