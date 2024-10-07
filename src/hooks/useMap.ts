@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ICONS from "../constants/icon";
 import useGuStore from "../store/gustore";
 import loadParkingData from "../api";
@@ -17,6 +18,7 @@ export default function useMap() {
 
   const { currentDistrict, setCurrentDistrict } = useGuStore();
   const [parkingData, setParkingData] = useState<ParkingData[]>([]);
+  const navigate = useNavigate();
 
   const updateDistrict = (center: any) => {
     const geocoder = new window.kakao.maps.services.Geocoder();
@@ -92,7 +94,9 @@ export default function useMap() {
   // 모달 데이터 변경 시 CustomOverlay 업데이트
   useEffect(() => {
     if (modalData && map) {
-      const { LAT, LOT, ADDR, PRD_AMT, PRK_STTS_YN, PKLT_NM } = modalData;
+      const { LAT, LOT, ADDR, BSC_PRK_CRG, PKLT_NM, NOW_PRK_VHCL_CNT } =
+        modalData;
+      console.log("modalData", modalData);
 
       // 커스텀 오버레이 컨텐츠 설정
       const content = document.createElement("div");
@@ -117,13 +121,23 @@ export default function useMap() {
           <i id="bookmark" class="bi bi-bookmark" style="background: none; border: none; cursor: pointer;"></i>
         </div>  
         <p>주소: ${ADDR}</p>
-        <p style="color: #4395F6">현재 주차 가능: ${PRK_STTS_YN}대</p>
+        <p style="color: #4395F6">현재 주차 가능: ${NOW_PRK_VHCL_CNT}대</p>
         <div style="display: flex; justify-content: space-between">
-          <p>기본요금: ${PRD_AMT}원</p>
+          <p>기본요금: ${BSC_PRK_CRG}원</p>
           <a href="#" style="color: blue;">상세보기</a>
         </div>
         <div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-width: 10px; border-style: solid; border-color: white transparent transparent transparent;"></div>
       `;
+
+      const detailLink = content.querySelector("a");
+      if (detailLink) {
+        detailLink.addEventListener("click", e => {
+          e.preventDefault(); // 기본 동작(페이지 새로고침) 방지
+
+          // 상세 페이지로 이동하며 데이터를 전달
+          navigate(`/detail/${PKLT_NM}`, { state: modalData });
+        });
+      }
 
       const position = new window.kakao.maps.LatLng(LAT, LOT);
 
@@ -169,7 +183,7 @@ export default function useMap() {
           bookmarkBtn?.classList.add("bi-bookmark-fill");
           localStorage.setItem(
             PKLT_NM,
-            JSON.stringify({ PKLT_NM, ADDR, PRK_STTS_YN, PRD_AMT }),
+            JSON.stringify({ PKLT_NM, ADDR, NOW_PRK_VHCL_CNT, BSC_PRK_CRG }),
           );
         }
       };
