@@ -36,7 +36,6 @@ export default function Sidebar({
 
   return (
     <div className="relative px-6 overflow-y-auto">
-      {/* <Header /> */}
       <Input onInputChange={handleInput} value={inputValue} />
       {isApiCalled ? (
         <>
