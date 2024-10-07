@@ -8,8 +8,7 @@ const loadParkingData = async ({ start, end, region }: ParkingDataRequest) => {
   const apiUrl =
     process.env.NODE_ENV === "development" // 개발 환경
       ? `http://openapi.seoul.go.kr:8088/${apiKey}/json/GetParkingInfo/${start}/${end}/${encodeURIComponent(region)}` // 로컬 환경에서 요청
-      : `/api/GetParkingInfo/${start}/${end}/${encodeURIComponent(region)}`; // Vercel 환경에서는 프록시된 /api 경로 사용
-
+      : `/api/${apiKey}/json/GetParkingInfo/${start}/${end}/${encodeURIComponent(region)}`; // Vercel 환경에서는 프록시된 /api 경로 사용
   try {
     const response = await axios.get(apiUrl); // 설정된 API URL로 요청
     return response.data; // 응답 데이터 반환
