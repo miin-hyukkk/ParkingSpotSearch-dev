@@ -24,12 +24,17 @@ export default function Detail() {
             <div className="overflow-x-auto">
               <div className="grid grid-cols-3 gap-2 text-xl bg-gray_2">
                 {금액정보.map(item => (
-                  <>
-                    <div className="px-6 py-3 font-semibold text-center text-gray-600">
-                      {item.label}
-                    </div>
-                    <div className="px-6 py-3 text-center">{item.value}</div>
-                  </>
+                  <div
+                    key={item.label}
+                    className="px-6 py-3 font-semibold text-center text-gray-600"
+                  >
+                    {item.label}
+                  </div>
+                ))}
+                {금액정보.map(item => (
+                  <div key={item.label} className="px-6 py-3 text-center">
+                    {item.value}
+                  </div>
                 ))}
               </div>
             </div>
