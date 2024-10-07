@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Header from "../layout/header";
+// import Header from "../layout/header";
 import Input from "../common/input";
 import List from "./list";
 import LoadingSpinner from "../common/loadingSpinner";
@@ -36,7 +36,7 @@ export default function Sidebar({
 
   return (
     <div className="relative px-6 overflow-y-auto">
-      <Header />
+      {/* <Header /> */}
       <Input onInputChange={handleInput} value={inputValue} />
       {isApiCalled ? (
         <>

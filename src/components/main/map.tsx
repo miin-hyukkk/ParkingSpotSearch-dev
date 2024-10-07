@@ -1,10 +1,8 @@
 import React from "react";
 import useMap from "../../hooks/useMap";
-import useFilter from "../../hooks/useFilter";
 
 export default function Map() {
-  const { buttons } = useMap();
-  const { filterButtons } = useFilter();
+  const { buttons, filterButtons } = useMap();
 
   return (
     <div>

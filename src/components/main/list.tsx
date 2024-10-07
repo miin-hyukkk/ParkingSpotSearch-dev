@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { ParkingData } from "../../interfaces/parkingData";
 
 interface ListProps {
@@ -7,6 +8,8 @@ interface ListProps {
 }
 
 export default function List({ parkingData, onItemClick }: ListProps) {
+  const navigate = useNavigate();
+
   const handleKeyDown = (
     parking: ParkingData,
     event: React.KeyboardEvent<HTMLDivElement>,
@@ -35,7 +38,17 @@ export default function List({ parkingData, onItemClick }: ListProps) {
             {parking.ADDR} / {parking.PRK_TYPE_NM} / 기본 요금:
             {parking.BSC_PRK_CRG}원
           </p>
-          <p className="pb-4 font-light text-secondary">상세보기</p>
+          <button
+            className="self-start py-1 text-sm text-xl font-light cursor-pointer text-secondary hover:underline"
+            type="button"
+            onClick={() =>
+              navigate(`/detail/${parking.PKLT_NM}`, {
+                state: { parking },
+              })
+            }
+          >
+            상세보기
+          </button>
         </div>
       ))}
     </div>
