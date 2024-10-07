@@ -40,11 +40,11 @@ export default function List({ parkingData, onItemClick }: ListProps) {
           <button
             className="self-start py-1 text-sm text-xl font-light cursor-pointer text-secondary hover:underline"
             type="button"
-            onClick={() =>
+            onClick={() => {
               navigate(`/detail/${parking.PKLT_NM}`, {
-                state: { parking },
-              })
-            }
+                state: parking,
+              });
+            }}
           >
             상세보기
           </button>
