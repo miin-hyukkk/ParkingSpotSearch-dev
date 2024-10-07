@@ -14,7 +14,6 @@ export default function List({ parkingData, onItemClick }: ListProps) {
     parking: ParkingData,
     event: React.KeyboardEvent<HTMLDivElement>,
   ) => {
-    // Enter 키 또는 Space 키가 눌렸을 때 클릭 핸들러 호출 (베리어 프리)
     if (event.key === "Enter" || event.key === " ") {
       onItemClick(parking);
     }
